@@ -1,6 +1,7 @@
 from pwn import *
 import struct
 
+exe = ELF('./teleport')
 io = remote('127.1', 8080)
 
 io.readuntil(b'numbers:')
